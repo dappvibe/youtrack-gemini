@@ -22,11 +22,11 @@ app.post('/chat/:chatId', (req, res) => {
     const { chatId } = req.params;
     const { prompt, system_instruction, last_interaction_id } = req.body;
 
-    const apiKey = req.headers['gemini-api-key'] as string;
-    const youtrackUrl = req.headers['youtrack-url'] as string;
-    const youtrackToken = req.headers['youtrack-token'] as string;
-    const githubProject = req.headers['github-project'] as string; // Provided as context but maybe not used directly by app currently
-    const githubToken = req.headers['github-token'] as string;
+    const apiKey = req.get('GEMINI-API-KEY');
+    const youtrackUrl = req.get('YOUTRACK-URL');
+    const youtrackToken = req.get('YOUTRACK-TOKEN');
+    const githubProject = req.get('GITHUB-PROJECT'); // Provided as context but maybe not used directly by app currently
+    const githubToken = req.get('GITHUB-TOKEN');
 
     // Requirement: keys are required
     if (!apiKey) {
