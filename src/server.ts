@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { Chat } from './api/Chat.js';
+import { Chat } from './gemini/Chat.js';
 import { YoutrackAdapter } from './integrations/Youtrack.js';
 
 const app = express();
