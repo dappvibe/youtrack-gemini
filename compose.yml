@@ -6,7 +6,8 @@ services:
       - .:/app
     ports:
       - "3000:3000"
+      - "9229:9229"
     environment:
       - PORT=3000
       - NODE_ENV=development
-    command: ["npx", "tsx", "src/server.ts"]
+    command: ["npx", "tsx", "--inspect=0.0.0.0:9229", "src/server.ts"]
