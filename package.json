@@ -2,6 +2,12 @@
   "name": "gemini-api",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@google/genai": "latest",
     "cors": "^2.8.6",
