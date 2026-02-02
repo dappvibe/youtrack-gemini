@@ -2,16 +2,15 @@ import request from 'supertest';
 import { describe, it, expect, vi } from 'vitest';
 import { app } from '../src/server.js';
 
-// Mock the client api to avoid real calls
-vi.mock('../src/api.js', () => ({
-  client: {
+// Mock GoogleGenAI to avoid real calls
+vi.mock('@google/genai', () => ({
+  GoogleGenAI: vi.fn().mockImplementation(() => ({
     interactions: {
       create: vi.fn().mockResolvedValue({
-        id: 'mock-interaction-id',
         response: { candidates: [{ content: { parts: [{ text: 'Mock Reply' }] } }] }
       })
     }
-  }
+  }))
 }));
 
 // Mock Youtrack client to avoid real calls

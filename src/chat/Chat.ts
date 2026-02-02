@@ -1,71 +1,68 @@
-import { client } from '../api.js';
-import { Youtrack } from 'youtrack-rest-client';
-import { Interaction } from './Interaction.js';
-
-interface RequestOptions {
-    apiKey: string;
-    prompt: string;
-    system_instruction?: string;
-    youtrackUrl: string;
-    youtrackToken: string;
-    githubToken?: string;
-}
+import { GoogleGenAI } from '@google/genai';
 
 export class Chat {
   id: string; // Chat ID / Issue ID
+  response: any;
+  model: string = 'gemini-2.5-flash';
+
   constructor(id: string) {
     this.id = id;
   }
 
   /**
-   * Process a new request: call Gemini, store interaction, post to YouTrack
+   * Sends the prompt to the API and executes the callback.
+   * @param text The user prompt text.
+   * @param apiKey The Gemini API Key.
+   * @param githubToken Optional GitHub Token for MCP.
+   * @param systemInstructions Optional system instructions.
+   * @param callback Callback function to execute after response.
    */
-  async processRequest(options: RequestOptions) {
-      const { apiKey, prompt, system_instruction, youtrackUrl, youtrackToken, githubToken } = options;
+  async prompt(
+    text: string,
+    apiKey: string,
+    githubToken: string | undefined,
+    systemInstructions: string | undefined,
+    callback: (chat: Chat) => Promise<void>
+  ) {
+    try {
+        console.error(`Processing interaction for chat: ${this.id}`);
 
-      try {
-          console.error(`Processing interaction for chat: ${this.id}`);
+        // Instantiate GoogleGenAI on the fly with the provided key
+        const genAI = new GoogleGenAI({
+          apiKey
+        });
+    
+        const mcpServer = githubToken ? {
+          type: 'mcp_server',
+          name: 'github',
+          url: 'https://api.githubcopilot.com/mcp/',
+          headers: {
+            Authorization: `Bearer ${githubToken.trim()}`,
+          },
+        } : undefined;
+    
+        const payload: any = {
+          model: this.model,
+          input: text,
+          system_instruction: systemInstructions,
+        };
+    
+        if (mcpServer) {
+            payload.tools = [mcpServer];
+        }
 
-          // Create new interaction
-          const interaction = await client.interactions.create({
-              apiKey,
-              githubToken,
-              input: prompt,
-              system_instructions: system_instruction,
-              chat_id: this.id,
-              previous_interaction_id: undefined,
-              model: 'gemini-2.5-flash'
-          });
+        // Call the API
+        // @ts-ignore
+        const result = await genAI.interactions.create(payload);
+        this.response = result;
 
-          // Log to stderr
-          console.error(`Gemini reply for ${this.id}:`, interaction.response);
+        console.error(`Gemini reply for ${this.id}:`, this.response);
 
-          // Post reply to YouTrack
-          const yt = new Youtrack({
-              baseUrl: youtrackUrl,
-              token: youtrackToken
-          });
+        // Execute callback
+        await callback(this);
 
-          let replyText = '';
-          if (interaction.response && interaction.response.candidates && interaction.response.candidates[0] && interaction.response.candidates[0].content && interaction.response.candidates[0].content.parts) {
-                replyText = interaction.response.candidates[0].content.parts.map((p: any) => p.text).join('');
-          } else {
-                replyText = JSON.stringify(interaction.response);
-          }
-
-          if (replyText) {
-              try {
-                  await yt.comments.create(this.id, {
-                      text: replyText
-                  });
-                  console.error(`Posted reply to YouTrack issue ${this.id}`);
-              } catch (ytError: any) {
-                  console.error('Error posting to YouTrack:', ytError);
-              }
-          }
-
-      } catch (error: any) {
-          console.error('Error in background processing:', error);
-      }
+    } catch (error) {
+        console.error('Error in background processing:', error);
+    }
   }
 }
