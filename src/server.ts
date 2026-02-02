@@ -1,8 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { client } from './api.js';
-import { db } from './db.js';
-import { Interaction } from './Interaction.js';
+import { Chat } from './chat/Chat.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,24 +12,33 @@ app.use(express.json());
 // Routes
 
 /**
- * POST /chat/:chatId - Continue or start a chat
+ * POST /chat/:chatId
  * Requires GEMINI-API-KEY header.
- * Optional GITHUB-TOKEN header.
+ * Requires YOUTRACK-URL and YOUTRACK-TOKEN headers.
+ * Requires GITHUB-PROJECT and GITHUB-TOKEN headers.
  */
-app.post('/chat/:chatId', async (req, res) => {
-  try {
+app.post('/chat/:chatId', (req, res) => {
     const { chatId } = req.params;
     const { prompt, system_instruction } = req.body;
 
     const apiKey = req.headers['gemini-api-key'] as string;
+    const youtrackUrl = req.headers['youtrack-url'] as string;
+    const youtrackToken = req.headers['youtrack-token'] as string;
+    const githubProject = req.headers['github-project'] as string; // Provided as context but maybe not used directly by app currently
     const githubToken = req.headers['github-token'] as string;
 
-    // Requirement: If keys are not set return 503 error
+    // Requirement: keys are required
     if (!apiKey) {
       return res.status(503).json({ error: 'GEMINI-API-KEY header is required' });
     }
+    if (!youtrackUrl || !youtrackToken) {
+        return res.status(400).json({ error: 'YOUTRACK-URL and YOUTRACK-TOKEN headers are required' });
+    }
+    if (!githubProject || !githubToken) {
+       return res.status(400).json({ error: 'GITHUB-PROJECT and GITHUB-TOKEN headers are required' });
+    }
 
-    // Validation: alphanumeric and dash, up to 36 chars (UUID support)
+    // Validation
     const idRegex = /^[a-zA-Z0-9-]{1,36}$/;
     if (!idRegex.test(chatId)) {
       return res.status(400).json({ error: 'Chat ID must be alphanumeric with dashes and up to 36 characters.' });
@@ -41,61 +48,37 @@ app.post('/chat/:chatId', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    console.log(`Processing interaction for chat: ${chatId}`);
+    // 1. Return 200 OK immediately
+    res.status(200).json({ status: 'Processing', chatId });
 
-    // Check for previous interaction in this chat to verify context
-    const lastInteraction = Interaction.findLatestByChatId(chatId);
-
-    // Create new interaction
-    const interaction = await client.interactions.create({
-        apiKey,
-        githubToken,
-        input: prompt,
-        system_instructions: system_instruction,
-        chat_id: chatId,
-        previous_interaction_id: lastInteraction ? lastInteraction.id : undefined,
-        model: 'gemini-2.5-flash'
-    });
-
-    res.json(interaction);
-
-  } catch (error: any) {
-    console.error('Error creating interaction:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
-  }
+    // 2. Process in background
+    (async () => {
+        const chat = Chat.get(chatId);
+        await chat.processRequest({
+            apiKey,
+            prompt,
+            system_instruction,
+            youtrackUrl,
+            youtrackToken,
+            githubToken
+        });
+    })();
 });
 
-// GET /chat/:chatId - Get interaction logs for a chat
+// GET /chat/:chatId - In-memory log
 app.get('/chat/:chatId', (req, res) => {
-  try {
     const { chatId } = req.params;
+    const chat = Chat.get(chatId);
+    // Return simple list of interactions
+    res.json(chat.interactions);
+});
 
-    // Get all interactions for this chat, ordered by time
-    const stmt = db.prepare('SELECT * FROM interactions WHERE chat_id = ? ORDER BY created_at ASC');
-    const rows = stmt.all(chatId) as any[];
+export { app };
 
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: 'Chat not found' });
-    }
-
-    // Parse JSON responses
-    const results = rows.map(row => {
-        try {
-            row.response = JSON.parse(row.response);
-        } catch (e) {
-            // keep as is
-        }
-        return row;
+// Start server only if run directly
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    app.listen(port, () => {
+      console.log(`Gemini service listening on port ${port}`);
     });
-
-    res.json(results);
-  } catch (error: any) {
-    console.error('Error retrieving chat:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
-  }
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`Gemini service listening on port ${port}`);
-});
+}

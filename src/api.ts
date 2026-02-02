@@ -1,5 +1,4 @@
-import { Interaction } from './Interaction.js';
-import crypto from 'crypto';
+import { Interaction } from './chat/Interaction.js';
 
 /**
  * Client wrapper matching user requirements

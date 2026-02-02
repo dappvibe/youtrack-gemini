@@ -1,5 +1,4 @@
-import { Interaction } from '../src/Interaction.js';
-import { db } from '../src/db.js';
+import { Interaction } from '../src/chat/Interaction.js';
 import crypto from 'crypto';
 
 async function testInteractionPersistence() {

@@ -4,8 +4,15 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "latest",
-    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "youtrack-rest-client": "^1.4.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.8"
   }
 }
