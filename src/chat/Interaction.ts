@@ -35,7 +35,9 @@ export class Interaction {
     this.promptText = text;
 
     // Instantiate GoogleGenAI on the fly with the provided key
-    const genAI = new GoogleGenAI(apiKey);
+    const genAI = new GoogleGenAI({
+      apiKey
+    });
 
     const mcpServer = githubToken ? {
       type: 'mcp_server',

@@ -13,27 +13,8 @@ interface RequestOptions {
 
 export class Chat {
   id: string; // Chat ID / Issue ID
-  interactions: Interaction[];
-
-  private static storage = new Map<string, Chat>();
-
   constructor(id: string) {
     this.id = id;
-    this.interactions = [];
-  }
-
-  /**
-   * Add interaction to history
-   */
-  addInteraction(interaction: Interaction) {
-    this.interactions.push(interaction);
-  }
-
-  /**
-   * Get latest interaction
-   */
-  getLatestInteraction(): Interaction | undefined {
-    return this.interactions[this.interactions.length - 1];
   }
 
   /**
@@ -45,8 +26,6 @@ export class Chat {
       try {
           console.error(`Processing interaction for chat: ${this.id}`);
 
-          const lastInteraction = this.getLatestInteraction();
-
           // Create new interaction
           const interaction = await client.interactions.create({
               apiKey,
@@ -54,12 +33,9 @@ export class Chat {
               input: prompt,
               system_instructions: system_instruction,
               chat_id: this.id,
-              previous_interaction_id: lastInteraction ? lastInteraction.id : undefined,
+              previous_interaction_id: undefined,
               model: 'gemini-2.5-flash'
           });
-
-          // Store in memory
-          this.addInteraction(interaction);
 
           // Log to stderr
           console.error(`Gemini reply for ${this.id}:`, interaction.response);
@@ -91,15 +67,5 @@ export class Chat {
       } catch (error: any) {
           console.error('Error in background processing:', error);
       }
-  }
-
-  /**
-   * Get or create a Chat instance
-   */
-  static get(id: string): Chat {
-    if (!this.storage.has(id)) {
-      this.storage.set(id, new Chat(id));
-    }
-    return this.storage.get(id)!;
   }
 }

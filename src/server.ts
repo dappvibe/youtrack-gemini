@@ -53,7 +53,7 @@ app.post('/chat/:chatId', (req, res) => {
 
     // 2. Process in background
     (async () => {
-        const chat = Chat.get(chatId);
+        const chat = new Chat(chatId);
         await chat.processRequest({
             apiKey,
             prompt,
@@ -63,14 +63,6 @@ app.post('/chat/:chatId', (req, res) => {
             githubToken
         });
     })();
-});
-
-// GET /chat/:chatId - In-memory log
-app.get('/chat/:chatId', (req, res) => {
-    const { chatId } = req.params;
-    const chat = Chat.get(chatId);
-    // Return simple list of interactions
-    res.json(chat.interactions);
 });
 
 export { app };
