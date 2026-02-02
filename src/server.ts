@@ -11,13 +11,6 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-
-/**
- * POST /chat/:chatId
- * Requires GEMINI-API-KEY header.
- * Requires YOUTRACK-URL and YOUTRACK-TOKEN headers.
- * Requires GITHUB-PROJECT and GITHUB-TOKEN headers.
- */
 app.post('/chat/:chatId', (req, res) => {
     const { chatId } = req.params;
     const { prompt, system_instruction, last_interaction_id } = req.body;
@@ -28,7 +21,6 @@ app.post('/chat/:chatId', (req, res) => {
     const githubProject = req.get('GITHUB-PROJECT'); // Provided as context but maybe not used directly by app currently
     const githubToken = req.get('GITHUB-TOKEN');
 
-    // Requirement: keys are required
     if (!apiKey) {
       return res.status(503).json({ error: 'GEMINI-API-KEY header is required' });
     }
@@ -38,10 +30,7 @@ app.post('/chat/:chatId', (req, res) => {
     if (!githubProject || !githubToken) {
        return res.status(400).json({ error: 'GITHUB-PROJECT and GITHUB-TOKEN headers are required' });
     }
-
-    // Validation
-    const idRegex = /^[a-zA-Z0-9-]{1,36}$/;
-    if (!idRegex.test(chatId)) {
+    if (!/^[a-zA-Z0-9-]{1,36}$/.test(chatId)) {
       return res.status(400).json({ error: 'Chat ID must be alphanumeric with dashes and up to 36 characters.' });
     }
 
