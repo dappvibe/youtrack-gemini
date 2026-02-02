@@ -38,10 +38,8 @@ export class YoutrackAdapter {
                 id: issueId,
                 fields: [{
                     name: 'last_interaction_id',
-                    $type: 'TextIssueCustomField',
-                    value: {
-                        text: interactionId
-                    }
+                    $type: 'SimpleIssueCustomField',
+                    value: interactionId
                 } as any]
             });
             console.log(`Updated last_interaction_id for issue ${issueId} to ${interactionId}`);
