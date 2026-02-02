@@ -13,7 +13,7 @@ app.use(express.json());
 // Routes
 app.post('/chat/:chatId', (req, res) => {
     const { chatId } = req.params;
-    const { prompt, system_instruction, last_interaction_id } = req.body;
+    const { model, prompt, system_instruction, last_interaction_id } = req.body;
 
     const apiKey = req.get('GEMINI-API-KEY');
     const youtrackUrl = req.get('YOUTRACK-URL');
@@ -33,10 +33,12 @@ app.post('/chat/:chatId', (req, res) => {
       return res.status(400).json({ error: 'Chat ID must be alphanumeric with dashes and up to 36 characters.' });
     }
 
+    if (!model) {
+      return res.status(400).json({ error: 'Model is required' });
+    }
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
-
     if (!last_interaction_id && !system_instruction) {
       return res.status(400).json({ error: 'system_instruction is required for new interactions' });
     }
@@ -47,7 +49,7 @@ app.post('/chat/:chatId', (req, res) => {
     // 2. Process in background
     (async () => {
         const youtrack = new YoutrackAdapter(youtrackUrl, youtrackToken);
-        const chat = new Chat(chatId, apiKey, githubToken as string, system_instruction);
+        const chat = new Chat(chatId, model, apiKey, githubToken, system_instruction);
 
         await chat.prompt(
             prompt,

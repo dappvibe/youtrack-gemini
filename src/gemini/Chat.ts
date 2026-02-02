@@ -7,13 +7,14 @@ export class Chat {
   githubToken: string;
   systemInstructions?: string;
   response: any;
-  model: string = 'gemini-2.5-flash';
+  model: string;
 
-  constructor(id: string, apiKey: string, githubToken: string, systemInstructions?: string) {
+  constructor(id: string, model: string, apiKey: string, githubToken: string, systemInstructions?: string) {
     this.id = id;
     this.apiKey = apiKey;
     this.githubToken = githubToken;
     this.systemInstructions = systemInstructions;
+    this.model = model;
   }
 
   /**
