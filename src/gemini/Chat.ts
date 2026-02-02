@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import {McpServer} from "../github/mcp.js";
 
 export class Chat {
   id: string; // Chat ID / Issue ID
@@ -34,14 +35,7 @@ export class Chat {
           apiKey: this.apiKey
         });
 
-        const mcpServer = {
-          type: 'mcp_server',
-          name: 'github',
-          url: 'https://api.githubcopilot.com/mcp/',
-          headers: {
-            Authorization: `Bearer ${this.githubToken.trim()}`,
-          },
-        };
+        const mcpServer = new McpServer(this.githubToken);
 
         const payload: any = {
           model: this.model,
