@@ -12,10 +12,10 @@ export class YoutrackAdapter {
 
     async sendGeminiResponse(issueId: string, response: any) {
         let replyText = '';
-        if (response && response.candidates && response.candidates[0] && response.candidates[0].content && response.candidates[0].content.parts) {
-            replyText = response.candidates[0].content.parts.map((p: any) => p.text).join('');
-        } else {
-            replyText = JSON.stringify(response);
+        for(const output of response.outputs) {
+            if(output.type === 'text' && output.text) {
+                replyText = output.text;
+            }
         }
 
         if (replyText) {
@@ -27,6 +27,9 @@ export class YoutrackAdapter {
             } catch (ytError: any) {
                 console.error('Error posting to YouTrack:', ytError);
             }
+        } else {
+          console.log('No text output found in Gemini response. Full response:');
+          console.log(JSON.stringify(response));
         }
     }
 }

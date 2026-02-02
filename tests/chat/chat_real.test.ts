@@ -25,23 +25,9 @@ describe('Chat Real API', () => {
       async (c) => {
         callbackCalled = true;
 
-        // Log the full response for inspection
-        // console.log('Full Response:', JSON.stringify(c.response, null, 2));
-
         // Verify response structure
         expect(c.response).toBeDefined();
-        // Adjust these expectations based on the actual GoogleGenAI response structure
-        // Usually it's response.candidates[0].content.parts[0].text or similar
-        // But since we are using the raw response in Chat.ts:
-        // this.response = result;
-
-        // Basic check that we got something back
-        expect(c.response).toHaveProperty('candidates');
-        expect(Array.isArray(c.response.candidates)).toBe(true);
-        expect(c.response.candidates.length).toBeGreaterThan(0);
-
-        const firstCandidate = c.response.candidates[0];
-        expect(firstCandidate).toHaveProperty('content');
+        expect(c.response).toHaveProperty('outputs');
       }
     );
 
