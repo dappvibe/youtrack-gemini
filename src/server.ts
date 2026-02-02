@@ -44,7 +44,7 @@ app.post('/chat/:chatId', (req, res) => {
     }
 
     // 1. Return 200 OK immediately
-    res.status(200).json({ status: 'Processing', chatId });
+    res.status(200).json({ status: 'Thinking', chatId });
 
     // 2. Process in background
     (async () => {
