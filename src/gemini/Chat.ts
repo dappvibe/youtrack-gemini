@@ -42,6 +42,9 @@ export class Chat {
           input: text,
           system_instruction: this.systemInstructions,
           tools: [mcpServer],
+          generation_config: {
+            thinking_level: 'HIGH',
+          },
         };
 
         if (previousInteractionId) {
