@@ -18,7 +18,6 @@ app.post('/chat/:chatId', (req, res) => {
     const apiKey = req.get('GEMINI-API-KEY');
     const youtrackUrl = req.get('YOUTRACK-URL');
     const youtrackToken = req.get('YOUTRACK-TOKEN');
-    const githubProject = req.get('GITHUB-PROJECT'); // Provided as context but maybe not used directly by app currently
     const githubToken = req.get('GITHUB-TOKEN');
 
     if (!apiKey) {
@@ -27,7 +26,7 @@ app.post('/chat/:chatId', (req, res) => {
     if (!youtrackUrl || !youtrackToken) {
         return res.status(400).json({ error: 'YOUTRACK-URL and YOUTRACK-TOKEN headers are required' });
     }
-    if (!githubProject || !githubToken) {
+    if (!githubToken) {
        return res.status(400).json({ error: 'GITHUB-PROJECT and GITHUB-TOKEN headers are required' });
     }
     if (!/^[a-zA-Z0-9-]{1,36}$/.test(chatId)) {
