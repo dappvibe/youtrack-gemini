@@ -32,4 +32,21 @@ export class YoutrackAdapter {
           console.log(JSON.stringify(response));
         }
     }
+    async updateInteractionId(issueId: string, interactionId: string) {
+        try {
+            await this.client.issues.update({
+                id: issueId,
+                fields: [{
+                    name: 'last_interaction_id',
+                    $type: 'TextIssueCustomField',
+                    value: {
+                        text: interactionId
+                    }
+                } as any]
+            });
+            console.log(`Updated last_interaction_id for issue ${issueId} to ${interactionId}`);
+        } catch (error) {
+            console.error(`Failed to update last_interaction_id for issue ${issueId}:`, error);
+        }
+    }
 }

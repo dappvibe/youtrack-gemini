@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { Chat } from './chat/Chat.js';
+import { Chat } from './api/Chat.js';
 import { YoutrackAdapter } from './integrations/Youtrack.js';
 
 const app = express();
@@ -20,7 +20,7 @@ app.use(express.json());
  */
 app.post('/chat/:chatId', (req, res) => {
     const { chatId } = req.params;
-    const { prompt, system_instruction } = req.body;
+    const { prompt, system_instruction, last_interaction_id } = req.body;
 
     const apiKey = req.headers['gemini-api-key'] as string;
     const youtrackUrl = req.headers['youtrack-url'] as string;
@@ -49,6 +49,10 @@ app.post('/chat/:chatId', (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
+    if (!last_interaction_id && !system_instruction) {
+      return res.status(400).json({ error: 'system_instruction is required for new interactions' });
+    }
+
     // 1. Return 200 OK immediately
     res.status(200).json({ status: 'Processing', chatId });
 
@@ -56,14 +60,19 @@ app.post('/chat/:chatId', (req, res) => {
     (async () => {
         const youtrack = new YoutrackAdapter(youtrackUrl, youtrackToken);
         const chat = new Chat(chatId);
-        
+
         await chat.prompt(
             prompt,
             apiKey,
             githubToken,
             system_instruction,
+            last_interaction_id,
             async (chat) => {
                 await youtrack.sendGeminiResponse(chat.id, chat.response);
+
+                if (chat.response && chat.response.id) {
+                     await youtrack.updateInteractionId(chat.id, chat.response.id);
+                }
             }
         );
     })();

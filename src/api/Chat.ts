@@ -22,6 +22,7 @@ export class Chat {
     apiKey: string,
     githubToken: string | undefined,
     systemInstructions: string | undefined,
+    previousInteractionId: string | undefined,
     callback: (chat: Chat) => Promise<void>
   ) {
     try {
@@ -31,7 +32,7 @@ export class Chat {
         const genAI = new GoogleGenAI({
           apiKey
         });
-    
+
         const mcpServer = githubToken ? {
           type: 'mcp_server',
           name: 'github',
@@ -40,13 +41,17 @@ export class Chat {
             Authorization: `Bearer ${githubToken.trim()}`,
           },
         } : undefined;
-    
+
         const payload: any = {
           model: this.model,
           input: text,
           system_instruction: systemInstructions,
         };
-    
+
+        if (previousInteractionId) {
+            payload.previous_interaction_id = previousInteractionId;
+        }
+
         if (mcpServer) {
             payload.tools = [mcpServer];
         }
