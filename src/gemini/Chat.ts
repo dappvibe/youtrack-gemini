@@ -57,7 +57,7 @@ export class Chat {
         const result = await genAI.interactions.create(payload);
         this.response = result;
 
-        console.error(`Gemini reply for ${this.id}:`, this.response);
+        console.error(`Gemini reply for ${this.id}:`, JSON.stringify(this.response));
 
         // Execute callback
         await callback(this);
