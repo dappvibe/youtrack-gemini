@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { YoutrackAdapter } from '../../src/integrations/Youtrack.js';
+import { Client } from '../../src/youtrack/client.js';
 
 vi.mock('youtrack-rest-client', () => {
     return {
@@ -13,11 +13,11 @@ vi.mock('youtrack-rest-client', () => {
     };
 });
 
-describe('YoutrackAdapter Callback', () => {
+describe('Client Callback', () => {
     it('should correctly parse Gemini response and post comment to YouTrack', async () => {
-        const adapter = new YoutrackAdapter('http://mock', 'token');
+        const adapter = new Client('http://mock', 'token');
         const mockIssueId = 'DEMO-123';
-        
+
         const geminiInput = {
             "created": "2026-02-02T04:58:52Z",
             "id": "v1_ChdDaS1BYWR2MkdaeXRrZFVQa1pmSWlBYxIXQ2ktQWFkdjJHWnl0a2RVUGtaZklpQWM",
@@ -53,8 +53,8 @@ describe('YoutrackAdapter Callback', () => {
         };
 
         // Access the mocked client directly to check calls
-        // @ts-ignore - reaching into private client for test verification
-        const createCommentSpy = adapter.client.comments.create;
+
+        const createCommentSpy = adapter.comments.create;
 
         await adapter.sendGeminiResponse(mockIssueId, geminiInput);
 
@@ -64,9 +64,9 @@ describe('YoutrackAdapter Callback', () => {
     });
 
     it('should handle responses with no text output', async () => {
-        const adapter = new YoutrackAdapter('http://mock', 'token');
+        const adapter = new Client('http://mock', 'token');
         const mockIssueId = 'DEMO-123';
-        
+
         const geminiInputWithoutText = {
             "outputs": [
                 {
@@ -76,8 +76,8 @@ describe('YoutrackAdapter Callback', () => {
             ]
         };
 
-        // @ts-ignore
-        const createCommentSpy = adapter.client.comments.create;
+
+        const createCommentSpy = adapter.comments.create;
 
         await adapter.sendGeminiResponse(mockIssueId, geminiInputWithoutText);
 

@@ -1,10 +1,8 @@
 import { Youtrack } from 'youtrack-rest-client';
 
-export class YoutrackAdapter {
-    private client: Youtrack;
-
+export default class Client extends Youtrack {
     constructor(baseUrl: string, token: string) {
-        this.client = new Youtrack({
+        super({
             baseUrl,
             token
         });
@@ -12,18 +10,20 @@ export class YoutrackAdapter {
 
     async sendGeminiResponse(issueId: string, response: any) {
         let replyText = '';
-        for(const output of response.outputs) {
-            if(output.type === 'text' && output.text) {
-                replyText = output.text;
+        if (response.outputs) {
+             for(const output of response.outputs) {
+                if(output.type === 'text' && output.text) {
+                    replyText = output.text;
+                }
             }
         }
 
         if (replyText) {
             try {
-                await this.client.comments.create(issueId, {
+                await this.comments.create(issueId, {
                     text: replyText
                 });
-                console.error(`Posted reply to YouTrack issue ${issueId}`);
+                console.log(`Posted reply to YouTrack issue ${issueId}`);
             } catch (ytError: any) {
                 console.error('Error posting to YouTrack:', ytError);
             }
@@ -32,9 +32,10 @@ export class YoutrackAdapter {
           console.log(JSON.stringify(response));
         }
     }
+
     async updateInteractionId(issueId: string, interactionId: string) {
         try {
-            await this.client.issues.update({
+            await this.issues.update({
                 id: issueId,
                 fields: [{
                     name: 'last_interaction_id',

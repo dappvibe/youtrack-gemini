@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { Chat } from './gemini/Chat.js';
-import { YoutrackAdapter } from './integrations/Youtrack.js';
+import Youtrack from './youtrack/client.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -48,7 +48,7 @@ app.post('/chat/:chatId', (req, res) => {
 
     // 2. Process in background
     (async () => {
-        const youtrack = new YoutrackAdapter(youtrackUrl, youtrackToken);
+        const youtrack = new Youtrack(youtrackUrl, youtrackToken);
         const chat = new Chat(chatId, model, apiKey, githubToken, system_instruction);
 
         await chat.prompt(

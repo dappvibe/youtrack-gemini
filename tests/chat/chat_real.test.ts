@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Chat } from '../../src/api/Chat.js';
+import { Chat } from '../../src/gemini/Chat.js';
+import Youtrack from "../../src/youtrack/client.js";
 
 // Read API key from environment variable
 const apiKey = process.env.GEMINI_API_KEY;
