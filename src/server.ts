@@ -59,13 +59,10 @@ app.post('/chat/:chatId', (req, res) => {
     // 2. Process in background
     (async () => {
         const youtrack = new YoutrackAdapter(youtrackUrl, youtrackToken);
-        const chat = new Chat(chatId);
+        const chat = new Chat(chatId, apiKey, githubToken as string, system_instruction);
 
         await chat.prompt(
             prompt,
-            apiKey,
-            githubToken,
-            system_instruction,
             last_interaction_id,
             async (chat) => {
                 await youtrack.sendGeminiResponse(chat.id, chat.response);

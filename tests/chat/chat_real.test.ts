@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Chat } from '../../src/chat/Chat.js';
+import { Chat } from '../../src/api/Chat.js';
 
 // Read API key from environment variable
 const apiKey = process.env.GEMINI_API_KEY;
@@ -13,15 +13,18 @@ describe('Chat Real API', () => {
     console.log('Testing with real Gemini API...');
 
     // Create a new Chat instance
-    const chat = new Chat('real-api-test-id');
+    const chat = new Chat(
+      'real-api-test-id',
+      apiKey!,
+      githubToken || 'dummy-token',
+      'You are a helpful test assistant.' // System instruction
+    );
     let callbackCalled = false;
 
     // Call prompt with real API key
     await chat.prompt(
       'Hello! Please reply with "Pong".',
-      apiKey!,
-      githubToken,
-      'You are a helpful test assistant.', // System instruction
+      undefined, // No previous interaction ID
       async (c) => {
         callbackCalled = true;
 

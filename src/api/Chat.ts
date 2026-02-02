@@ -2,26 +2,27 @@ import { GoogleGenAI } from '@google/genai';
 
 export class Chat {
   id: string; // Chat ID / Issue ID
+  apiKey: string;
+  githubToken: string;
+  systemInstructions?: string;
   response: any;
   model: string = 'gemini-2.5-flash';
 
-  constructor(id: string) {
+  constructor(id: string, apiKey: string, githubToken: string, systemInstructions?: string) {
     this.id = id;
+    this.apiKey = apiKey;
+    this.githubToken = githubToken;
+    this.systemInstructions = systemInstructions;
   }
 
   /**
    * Sends the prompt to the API and executes the callback.
    * @param text The user prompt text.
-   * @param apiKey The Gemini API Key.
-   * @param githubToken Optional GitHub Token for MCP.
-   * @param systemInstructions Optional system instructions.
+   * @param previousInteractionId
    * @param callback Callback function to execute after response.
    */
   async prompt(
     text: string,
-    apiKey: string,
-    githubToken: string | undefined,
-    systemInstructions: string | undefined,
     previousInteractionId: string | undefined,
     callback: (chat: Chat) => Promise<void>
   ) {
@@ -30,30 +31,27 @@ export class Chat {
 
         // Instantiate GoogleGenAI on the fly with the provided key
         const genAI = new GoogleGenAI({
-          apiKey
+          apiKey: this.apiKey
         });
 
-        const mcpServer = githubToken ? {
+        const mcpServer = {
           type: 'mcp_server',
           name: 'github',
           url: 'https://api.githubcopilot.com/mcp/',
           headers: {
-            Authorization: `Bearer ${githubToken.trim()}`,
+            Authorization: `Bearer ${this.githubToken.trim()}`,
           },
-        } : undefined;
+        };
 
         const payload: any = {
           model: this.model,
           input: text,
-          system_instruction: systemInstructions,
+          system_instruction: this.systemInstructions,
+          tools: [mcpServer],
         };
 
         if (previousInteractionId) {
             payload.previous_interaction_id = previousInteractionId;
-        }
-
-        if (mcpServer) {
-            payload.tools = [mcpServer];
         }
 
         // Call the API
