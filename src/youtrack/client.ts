@@ -1,51 +1,43 @@
-import { Youtrack } from 'youtrack-rest-client';
+import {Youtrack} from 'youtrack-rest-client';
+import GeminiResponse from "../gemini/response.js";
 
 export default class Client extends Youtrack {
-    constructor(baseUrl: string, token: string) {
-        super({
-            baseUrl,
-            token
-        });
-    }
+  constructor(baseUrl: string, token: string) {
+    super({
+      baseUrl,
+      token
+    });
+  }
 
-    async sendGeminiResponse(issueId: string, response: any) {
-        let replyText = '';
-        if (response.outputs) {
-             for(const output of response.outputs) {
-                if(output.type === 'text' && output.text) {
-                    replyText = output.text;
-                }
-            }
-        }
-
-        if (replyText) {
-            try {
-                await this.comments.create(issueId, {
-                    text: replyText
-                });
-                console.log(`Posted reply to YouTrack issue ${issueId}`);
-            } catch (ytError: any) {
-                console.error('Error posting to YouTrack:', ytError);
-            }
-        } else {
-          console.log('No text output found in Gemini response. Full response:');
-          console.log(JSON.stringify(response));
-        }
+  async sendReply(issueId: any, res: GeminiResponse) {
+    const text = res.toString();
+    if (text) {
+      try {
+        await this.comments.create(issueId, {text});
+        console.log(`Posted reply to YouTrack issue ${issueId}`);
+      } catch (ytError: any) {
+        console.error('Error posting to YouTrack:', ytError);
+      }
+    } else {
+      console.error('No text output found in Gemini response. Full response:');
+      console.error(JSON.stringify(res));
     }
+    return res;
+  }
 
-    async updateInteractionId(issueId: string, interactionId: string) {
-        try {
-            await this.issues.update({
-                id: issueId,
-                fields: [{
-                    name: 'last_interaction_id',
-                    $type: 'SimpleIssueCustomField',
-                    value: interactionId
-                } as any]
-            });
-            console.log(`Updated last_interaction_id for issue ${issueId} to ${interactionId}`);
-        } catch (error) {
-            console.error(`Failed to update last_interaction_id for issue ${issueId}:`, error);
-        }
+  async updateIssue(id: string, res: GeminiResponse) {
+    try {
+      await this.issues.update({
+        id,
+        fields: [{
+          name: 'last_interaction_id',
+          $type: 'SimpleIssueCustomField',
+          value: res.id
+        } as any]
+      });
+    } catch (error) {
+      console.error(`Failed to update last_interaction_id for issue ${id}:`, error);
     }
+    return res;
+  }
 }
