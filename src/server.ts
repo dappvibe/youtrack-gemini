@@ -66,6 +66,10 @@ app.post('/chat/:chatId', (req, res) => {
   // @ts-ignore Params type is not exported from genai package
   gemini.interactions.create(interaction)
     .then((res) => new GeminiResponse(res))
+    .then((res) => {
+      console.log(JSON.stringify(res, null, 2));
+      return res;
+    })
     .then(async (res) => youtrack.sendReply(issueId, res))
     .then(async (res) => youtrack.updateIssue(issueId, res))
     .catch((e) => console.error(e.toString()));

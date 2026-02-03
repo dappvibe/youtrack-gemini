@@ -11,7 +11,7 @@ export default class Interaction {
   public previous_interaction_id?: string;
   public model: string;
   public input: string;
-  public system_instruction: string;
+  public system_instruction?: string;
   public tools: Array<any>;
   public generation_config: { thinking_level: 'HIGH' };
   public stream: boolean;
